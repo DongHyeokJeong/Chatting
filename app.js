@@ -6,20 +6,16 @@ app.get('/', function(req, res){
     res.sendfile('index.html');
 });
 
-// io.on('connection', function(socket){
-//     console.log('a user connected');
-//     socket.on('disconnect', function(){
-//         console.log('user disconnected');
-//     });
-// });
-
-// io.on('connection', function(socket){
-//     socket.on('chat message', function(msg){
-//         console.log('message: ' + msg);
-//     });
-// });
-
 io.on('connection', function(socket){
+
+    socket.on('entrance', function(data) {  // 들어올 때 알림
+        io.emit('entranceAlarm', {id:socket.id});
+    });
+
+    socket.on('disconnect', function() {  // 나갈 때 알림
+        io.emit('exitAlarm', {id:socket.id});
+    });
+
     socket.on('chat message', function(msg){
         io.emit('chat message', msg);
     });
