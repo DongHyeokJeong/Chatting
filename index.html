@@ -3,17 +3,40 @@
 <head>
   <title>Socket.IO chat</title>
   <style>
+    /*초기화*/
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font: 13px Helvetica, Arial; }
     form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
     form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-    #nickChange { background: #ffffff; padding: 3px; position:absolute; left:90%; top:5%; width:100px; height:50px }
-    #messagesForm { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-    #nickNameForm { background: #000; padding: 3px; position: fixed; bottom: 50%; width: 100%; }
+
+    header { background: #fffff0; width: 100%; margin:0 auto; height:15%; position: relative;}
+
+    /*입장, 퇴장 알림창*/
+    #nav_EntranceExit { height:7%; padding: 5px; font-size: 40px; }
+
+    /*닉네임 변화*/
+    #nav_NicknameChange { padding: 3px; position:absolute; right:10px; top:10px; width:100px; height:50px }
+    #btn_NicknameChange { background: #ffffff; width:77px; height:42px }
+
+    /*온라인 접속자 목록*/
+    #nar_OnlineUser { height:3%; border:1px solid crimson;}
+
+    #content {position:absolute; height:75%; width:100%; margin:0 auto; overflow:scroll;}
+
+    /*채팅창*/
+    #Section_Messages {width: 100%;}
     #messages { list-style-type: none; margin: 0; padding: 0; }
     #messages li { padding: 5px 10px; }
     #messages li:nth-child(odd) { background: #eee; }
-    #mask { position:absolute; z-index:9000; background-color:#000; display:none; left:0; top:0; }
+
+    /*메세지 전송창*/
+    /*#footer_MessageSubmit {    }*/
+    #messagesForm { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+
+    /*레이어 팝업*/
+    #layer { position:absolute; z-index:9000; background-color:#000; display:none; left:0; top:0; }
+    #nicknameEnter { background: #000; padding: 3px; position: fixed; bottom: 50%; width: 100%; }
+
   </style>
   <script src="/socket.io/socket.io.js"></script>
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
@@ -24,11 +47,11 @@
           var maskWidth = $(window).width();
 
           //마스크의 높이와 너비를 화면 것으로 만들어 전체 화면을 채운다.
-          $('#mask').css({'width':maskWidth,'height':maskHeight});
+          $('#layer').css({'width':maskWidth,'height':maskHeight});
 
           //애니메이션 효과 - 일단 1초동안 까맣게 됐다가 80% 불투명도로 간다.
-          $('#mask').fadeIn(1000);
-          $('#mask').fadeTo("slow",0.8);
+          $('#layer').fadeIn(1000);
+          $('#layer').fadeTo("slow",0.8);
       }
 
       $(document).ready(function(){
@@ -36,11 +59,11 @@
           wrapWindowByMask();
           var socket = io();
           // 닉네임 입력
-          $('#btn').click(function(e){
-              nickName = $('#nickName').val();
+          $('#btn_nicknameEnter').click(function(e){
+              nickName = $('#input_Nickname').val();
               socket.emit('entrance', {nickName:nickName});
               e.preventDefault();
-              $('#mask').hide();
+              $('#layer').hide();
           });
           // 채팅 입력
           $('#messagesForm').submit(function(e){
@@ -50,8 +73,8 @@
               e.preventDefault();
           });
           //닉네임 바꾸기
-          $('#nickChange').click(function(){
-              $('#nickName').val('');
+          $('#btn_NicknameChange').click(function(){
+              $('#input_Nickname').val('');
               wrapWindowByMask();
           });
 
@@ -63,23 +86,24 @@
                   else {
                       var tag = '<li><b>' + data.nickName + '</b> : ' + data.msg + '</li>';
                       $('#messages').append(tag);
+                      $("#content").scrollTop($("#content")[0].scrollHeight);
                   }
               }
           });
           // 입장 알림
           socket.on('entranceAlarm', function(msg){
-              var html = '<li><b>' + msg.nickName + '  in!! </b></li><br><br>';
-              $('#everybody')[0].innerHTML = html;
+              var html = '<li><b>' + msg.nickName + '  in!! </b></li>';
+              $('#entrance_Exit')[0].innerHTML = html;
           });
           // 퇴장 알림
           socket.on('exitAlarm', function(msg){
-              var html = '<li><b>' + msg.nickName + '  out!! </b></li><br><br>';
-              $('#everybody')[0].innerHTML = html;
+              var html = '<li><b>' + msg.nickName + '  out!! </b></li>';
+              $('#entrance_Exit')[0].innerHTML = html;
           });
           // 온라인 유저 표시
           socket.on('onlineUser', function(users){
               if(users) {
-                  var html = '<li>Now online member : '
+                  var html = '<li>Now online member : ';
                   for(var user in users) {
                       html += users[user] + ' ';
                   }
@@ -91,32 +115,39 @@
   </script>
 </head>
 <body>
-<!--닉네임 입력하는곳-->
-<div id="mask">
-  <form id="nickNameForm" action="">
+<!--레이어 팝업-->
+<div id="layer">
+  <form id="nicknameEnter" action="">
     <p><font color="#f0f8ff">Enter you nickname</font></p>
-    <input id="nickName" autocomplete="off" /><button id="btn">Select</button>
+    <input id="input_Nickname" autocomplete="off" /><button id="btn_nicknameEnter">Select</button>
   </form>
 </div>
-<!--//접속자 표시-->
-<div align="center">
-  <ul id="onlineUser"></ul>
-</div>
-<!--입장 퇴장 안내하는 공간-->
-<div align="center">
-  <ul id="everybody"></ul>
-</div>
-<!--닉네임 변경-->
-<div align="center">
-  <button id="nickChange">Change nickname</button>
-</div>
-<!--메세지 창-->
-<div id="messagesDiv">
-  <ul id="messages"></ul>
-</div>
-<!--메세지 보내는 곳-->
-<form id="messagesForm" action="">
-  <input id="m" autocomplete="off" /><button>Send</button>
-</form>
+
+  <header>
+    <nav id="nav_EntranceExit" align="center" > <!--입장 퇴장 안내하는 공간-->
+        <ul id="entrance_Exit"></ul>
+    </nav>
+
+    <nav id="nav_NicknameChange"> <!--닉네임 변경-->
+        <button id='btn_NicknameChange''>Change Nickname</button>
+    </nav>
+
+    <nav id="nar_OnlineUser" align="center">  <!--//접속자 표시-->
+      <ul id="onlineUser"></ul>
+    </nav>
+  </header>
+
+
+  <div id="content">
+    <section id="Section_Messages"> <!--메세지 창-->
+        <ul id="messages"></ul>
+    </section>
+  </div>
+
+  <footer id="footer_MessageSubmit"> <!--메세지 보내는 곳-->
+    <form id="messagesForm" action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+  </footer>
 </body>
 </html>
