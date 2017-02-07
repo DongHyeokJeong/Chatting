@@ -5,27 +5,20 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font: 13px Helvetica, Arial; }
-    #messagesForm { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-    #nickNameForm { background: #000; padding: 3px; position: fixed; bottom: 50%; width: 100%; }
     form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
     form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+    #nickChange { background: #ffffff; padding: 3px; position:absolute; left:90%; top:5%; width:100px; height:50px }
+    #messagesForm { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+    #nickNameForm { background: #000; padding: 3px; position: fixed; bottom: 50%; width: 100%; }
     #messages { list-style-type: none; margin: 0; padding: 0; }
     #messages li { padding: 5px 10px; }
     #messages li:nth-child(odd) { background: #eee; }
-
-    #mask {
-      position:absolute;
-      z-index:9000;
-      background-color:#000;
-      display:none;
-      left:0;
-      top:0;
-    }
+    #mask { position:absolute; z-index:9000; background-color:#000; display:none; left:0; top:0; }
   </style>
   <script src="/socket.io/socket.io.js"></script>
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
-      function wrapWindowByMask(){
+      function wrapWindowByMask(){ //레이어 팝업
           //화면의 높이와 너비를 구한다.
           var maskHeight = $(window).height();
           var maskWidth = $(window).width();
@@ -42,51 +35,86 @@
           var nickName;
           wrapWindowByMask();
           var socket = io();
-
+          // 닉네임 입력
           $('#btn').click(function(e){
               nickName = $('#nickName').val();
               socket.emit('entrance', {nickName:nickName});
               e.preventDefault();
               $('#mask').hide();
           });
-
+          // 채팅 입력
           $('#messagesForm').submit(function(e){
               var msg = $('#m').val();
               socket.emit('chat message', {nickName:nickName, msg:msg});
               $('#m').val('');
               e.preventDefault();
           });
+          //닉네임 바꾸기
+          $('#nickChange').click(function(){
+              $('#nickName').val('');
+              wrapWindowByMask();
+          });
 
+          socket.on('chat message', function(data){
+              if(data) {
+                  if(data.alert) {
+                      alert(data.alert + data.msg);
+                  }
+                  else {
+                      var tag = '<li><b>' + data.nickName + '</b> : ' + data.msg + '</li>';
+                      $('#messages').append(tag);
+                  }
+              }
+          });
+          // 입장 알림
           socket.on('entranceAlarm', function(msg){
               var html = '<li><b>' + msg.nickName + '  in!! </b></li><br><br>';
               $('#everybody')[0].innerHTML = html;
           });
-
+          // 퇴장 알림
           socket.on('exitAlarm', function(msg){
               var html = '<li><b>' + msg.nickName + '  out!! </b></li><br><br>';
               $('#everybody')[0].innerHTML = html;
           });
-
-          socket.on('chat message', function(data){
-              var tag = '<li><b>' + data.nickName + '</b> : ' + data.msg + '</li>';
-              $('#messages').append(tag);
+          // 온라인 유저 표시
+          socket.on('onlineUser', function(users){
+              if(users) {
+                  var html = '<li>Now online member : '
+                  for(var user in users) {
+                      html += users[user] + ' ';
+                  }
+                  html += '</li>';
+                  $('#onlineUser')[0].innerHTML = html;
+              }
           });
       });
   </script>
 </head>
 <body>
+<!--닉네임 입력하는곳-->
 <div id="mask">
   <form id="nickNameForm" action="">
     <p><font color="#f0f8ff">Enter you nickname</font></p>
     <input id="nickName" autocomplete="off" /><button id="btn">Select</button>
   </form>
 </div>
-<!------------------------------------------------------------------------------------------>
+<!--//접속자 표시-->
+<div align="center">
+  <ul id="onlineUser"></ul>
+</div>
+<!--입장 퇴장 안내하는 공간-->
 <div align="center">
   <ul id="everybody"></ul>
 </div>
-<!------------------------------------------------------------------------------------------>
-<ul id="messages"></ul>
+<!--닉네임 변경-->
+<div align="center">
+  <button id="nickChange">Change nickname</button>
+</div>
+<!--메세지 창-->
+<div id="messagesDiv">
+  <ul id="messages"></ul>
+</div>
+<!--메세지 보내는 곳-->
 <form id="messagesForm" action="">
   <input id="m" autocomplete="off" /><button>Send</button>
 </form>
