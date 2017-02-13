@@ -1,14 +1,20 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var path = require('path');
 
+var index = require('./route/index.js');
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+app.use(express.static(path.join(__dirname, 'public')));
+
 let login_users = {};
 let last_messages;
 
-app.get('/', function(req, res){
-    res.sendfile('index.html');
-});
+app.use('/', index);
 
 io.on('connection', function (socket) {
 

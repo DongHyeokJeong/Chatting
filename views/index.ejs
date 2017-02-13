@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <title>Socket.IO chat</title>
+  <link rel="stylesheet" href="/stylesheets/chatting.css" type="text/css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+  <script type="text/javascript" src="./javascripts/chatting.js"></script>
+</head>
+<body>
+<div id="layer">  <!--레이어 팝업-->
+  <form id="nicknameEnter" action="">
+    <p><font color="#f0f8ff">Enter you nickname</font></p>
+    <input id="input_Nickname" autocomplete="off" /><button id="btn_nicknameEnter">Select</button>
+  </form>
+</div>
+
+  <header>
+    <nav id="nav_EntranceExit" align="center" > <!--입장 퇴장 안내하는 공간-->
+        <ul id="entrance_Exit"></ul>
+    </nav>
+
+    <nav id="nav_NicknameChange"> <!--닉네임 변경-->
+        <button id='btn_NicknameChange'>Change Nickname</button>
+    </nav>
+
+    <nav id="nar_OnlineUser" align="center">  <!--//접속자 표시-->
+      <ul id="onlineUser"></ul>
+    </nav>
+  </header>
+
+  <div id="content">
+    <section id="Section_Messages"> <!--메세지 창-->
+        <ul id="messages"></ul>
+    </section>
+  </div>
+
+  <footer id="footer_MessageSubmit"> <!--메세지 보내는 곳-->
+    <form id="messagesForm" action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+  </footer>
+</body>
+</html>
